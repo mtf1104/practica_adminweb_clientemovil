@@ -9,8 +9,8 @@ app.use(express.json());
 // Configuración de conexión a tu base de datos
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root',      // Tu usuario de MySQL
-    password: '',      // Tu contraseña
+    user: 'root',
+    password: '',
     database: 'tienda_electronica'
 });
 
