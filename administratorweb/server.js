@@ -52,4 +52,27 @@ app.delete('/productos/:id', (req, res) => {
     });
 });
 
+// Ruta para recibir el carrito de la App y descontar stock
+app.post('/pedidos', (req, res) => {
+    const { usuario_id, productos } = req.body;
+
+    // 1. Insertamos el registro principal del pedido
+    const queryPedido = 'INSERT INTO pedidos (usuario_id, total, estado) VALUES (?, ?, ?)';
+    db.query(queryPedido, [usuario_id, 0, 'pagado'], (err, result) => {
+        if (err) return res.status(500).send(err);
+
+        const pedidoId = result.insertId;
+
+        // 2. Preparamos los datos para detalle_pedidos
+        const queryDetalle = 'INSERT INTO detalle_pedidos (pedido_id, producto_id, cantidad, precio_unitario) VALUES ?';
+        const valoresDetalle = productos.map(p => [pedidoId, p.producto_id, p.cantidad, p.precio_unitario]);
+
+        // 3. Insertamos el detalle (esto activará el TRIGGER 'actualizar_stock_venta')
+        db.query(queryDetalle, [valoresDetalle], (err) => {
+            if (err) return res.status(500).send(err);
+            res.json({ message: "Venta registrada con éxito" });
+        });
+    });
+});
+
 app.listen(3000, () => console.log('Servidor en puerto 3000'));
